@@ -4,6 +4,15 @@
 #include <stdint.h>
 #include "inputDevicePI.h"
 
+#ifdef UNICODE
+#define tchar wchar_t
+#define _STR(x) L##x
+#else
+#define tchar char
+#define _STR(x) x
+#endif
+
+extern tchar* gameName;
 struct _surface
 {
 	void* buf;

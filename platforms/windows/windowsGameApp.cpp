@@ -25,7 +25,7 @@
 
 
 HINSTANCE hInst;								
-TCHAR* WindowTitle = _T("My Game");					
+TCHAR* WindowTitle = gameName;					
 TCHAR* WindowClass = _T("windowsGameApp");
 static HWND mainWindow = NULL;
 static HDC mainWindowDC = NULL;

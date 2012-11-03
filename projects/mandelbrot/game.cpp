@@ -3,6 +3,7 @@
 static Surface* buf;
 static BOOL isDrawn = FALSE;
 
+tchar* gameName = _STR("Mandelbrot");
 /////////////complex number define//////////////////////////
 typedef struct _mycomplex
 {
