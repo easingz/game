@@ -23,6 +23,6 @@ typedef enum
 }
 #define ARGB(a, r, g, b) (a << 24 | r << 16 | g << 8 | b)
 
-void handleInput(virtualDevice*);
-void doGameLogic(void);
+BOOL handleInput(inputDevice*);
+BOOL doGameLogic(void);
 void onDrawFrame(Surface*);

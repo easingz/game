@@ -2,6 +2,7 @@
 #define GAMECORE_PI_H
 
 #include <stdint.h>
+#include "inputDevicePI.h"
 
 struct _surface
 {
@@ -19,6 +20,8 @@ typedef struct _surface Surface, *pSurface;
 struct _virtualDevice
 {
 	Surface* surface;
+	inputDevice* input;
+	// ms
 	int64_t (*timer_tik)(void);
 	int32_t (*platformMessageHandling)(void);
 	void (*platformKeyHandling) (void);

@@ -1,7 +1,11 @@
 #include <Windows.h>
 #include <Windowsx.h>
 
+#define DIRECTINPUT_VERSION 0x0800
 #include <d3d9.h>
+#include <d3dx9.h>
+#include <dinput.h>
+
 
 // C runtime includes
 #include <stdlib.h>
@@ -27,12 +31,19 @@ static HWND mainWindow = NULL;
 static HDC mainWindowDC = NULL;
 static pVirtualDevice windowsVD = NULL;
 MSG msg;
+extern int keyMap[256];
 
 // Directx related
 LPDIRECT3D9 d3d = NULL;
 LPDIRECT3DDEVICE9 d3dDevice = NULL;
 LPDIRECT3DSURFACE9 backBuffer = NULL;
 LPDIRECT3DSURFACE9 surface = NULL;
+LPDIRECTINPUT8 DIInput;
+LPDIRECTINPUTDEVICE8 DIMouse;
+LPDIRECTINPUTDEVICE8 DIKeyboard;
+DIMOUSESTATE mouseState;
+// MUST be 8bit for keyboard state retrieve
+int8_t keyState[256];
 
 //forward declaration
 ATOM				MyRegisterClass(HINSTANCE hInstance);
@@ -50,6 +61,13 @@ void                WindowsKeyHandle(void);
 int64_t             WindowsGetTime(void);
 void                releaseD3D(void);
 void                releaseWindowsVD(void);
+void                DIGetInputState(void);
+int32_t             DIKeyDown(VD_KEY);
+int32_t             DIButtonDown(VD_MOUSE);
+int32_t             DIMouse_X(void);
+int32_t             DIMouse_Y(void);
+BOOL                InitDIInput(void);
+void                ReleaseDIInput(void);
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -159,6 +177,8 @@ BOOL InitD3D()
 		NULL);
 	if(!SUCCEEDED(ret))
 		return FALSE;
+	if (!InitDIInput())
+		return FALSE;
 	return TRUE;
 }
 
@@ -170,6 +190,91 @@ void releaseD3D(void)
 		d3dDevice->Release();
 	if (backBuffer)
 		backBuffer->Release();
+	ReleaseDIInput();
+}
+
+BOOL InitDIInput(void)
+{
+	HRESULT ret = DirectInput8Create(
+		GetModuleHandle(NULL),
+		DIRECTINPUT_VERSION,
+		IID_IDirectInput8,
+		(void**)&DIInput,
+		NULL);
+	if (!SUCCEEDED(ret))
+	{
+		MessageBox(mainWindow, _T("Error create DirectInput8 interface"), _T("Error"), MB_OK);
+		return FALSE;
+	}
+
+	// keyboard
+	if(FAILED(DIInput->CreateDevice(GUID_SysKeyboard, &DIKeyboard, NULL)))
+		MessageBox(mainWindow, _T("Error create DirectInput8 keyboard device"), _T("Error"), MB_OK);
+	DIKeyboard->SetDataFormat(&c_dfDIKeyboard);
+	// need DISCL_EXCLUSIVE for fullscreen to inprove performance
+	DIKeyboard->SetCooperativeLevel(mainWindow, DISCL_NONEXCLUSIVE | DISCL_FOREGROUND);
+	DIKeyboard->Acquire();
+	
+	// mouse
+	if(FAILED(DIInput->CreateDevice(GUID_SysMouse, &DIMouse, NULL)))
+		MessageBox(mainWindow, _T("Error create DirectInput8 mouse device"), _T("Error"), MB_OK);;
+	DIMouse->SetDataFormat(&c_dfDIMouse);
+	// need DISCL_EXCLUSIVE for fullscreen to inprove performance
+	DIMouse->SetCooperativeLevel(mainWindow, DISCL_NONEXCLUSIVE | DISCL_FOREGROUND);
+	DIMouse->Acquire();
+	// show cursor?
+	d3dDevice->ShowCursor(FALSE);
+
+	return TRUE;
+}
+
+void ReleaseDIInput(void)
+{
+	if(DIKeyboard)
+	{
+		DIKeyboard->Unacquire();
+		DIKeyboard->Release();
+		DIKeyboard = NULL;
+	}
+	if(DIMouse)
+	{
+		DIMouse->Unacquire();
+		DIMouse->Release();
+		DIMouse = NULL;
+	}
+}
+
+int32_t DIKeyDown(VD_KEY vd_key_code)
+{
+	return keyState[keyMap[vd_key_code]] & 0x80;
+}
+
+int32_t DIButtonDown(VD_MOUSE vd_mouse_code)
+{
+	return mouseState.rgbButtons[vd_mouse_code] & 0x80;
+}
+
+void DIGetInputState()
+{
+	//for debug, see error type
+	HRESULT ret;
+	//update mouse state
+	while(FAILED(ret = DIMouse->GetDeviceState(sizeof(mouseState), (LPVOID)&mouseState)))
+		DIMouse->Acquire();
+
+	//update keyboard state
+	while(FAILED(ret = DIKeyboard->GetDeviceState(sizeof(keyState),(LPVOID)keyState)))
+		DIKeyboard->Acquire();
+}
+
+int32_t DIMouse_X()
+{
+	return mouseState.lX;
+}
+
+int32_t DIMouse_Y()
+{
+	return mouseState.lY;
 }
 
 BOOL InitWindowsVD()
@@ -185,6 +290,12 @@ BOOL InitWindowsVD()
 	windowsVD->timer_tik = WindowsGetTime;
 	windowsVD->platformMessageHandling = WindowsMessageHandle;
 	windowsVD->platformKeyHandling = WindowsKeyHandle;
+	windowsVD->input = (inputDevice*)malloc(sizeof(inputDevice));
+	windowsVD->input->getInputState = DIGetInputState;
+	windowsVD->input->keyDown = DIKeyDown;
+	windowsVD->input->buttonDown = DIButtonDown;
+	windowsVD->input->mouse_X = DIMouse_X;
+	windowsVD->input->mouse_Y = DIMouse_Y;
 
 	return TRUE;
 }
@@ -192,6 +303,7 @@ BOOL InitWindowsVD()
 void releaseWindowsVD()
 {
 	free(windowsVD->surface);
+	free(windowsVD->input);
 	free(windowsVD);
 }
 
@@ -248,8 +360,8 @@ void d3dUnlockSurface(void)
 
 void WindowsKeyHandle(void)
 {
-	if (KEYDOWN(VK_ESCAPE))
-		PostMessage(mainWindow, WM_DESTROY, 0, 0);
+	//if (KEYDOWN(VK_ESCAPE))
+	//	PostMessage(mainWindow, WM_DESTROY, 0, 0);
 }
 
 BOOL WindowsMessageHandle(void)

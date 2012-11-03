@@ -77,15 +77,22 @@ void drawMandelbrot(float re_min, float re_max, float img_min, float img_max,
 	isDrawn =TRUE;
 }
 
-void handleInput(virtualDevice* VD)
+BOOL handleInput(inputDevice* VDInput)
 {
-	// do nothing
+	VDInput->getInputState();
+	if(VDInput->buttonDown(VD_MOUSE1))
+		return FALSE;
+	if(VDInput->keyDown(VD_Q) && VDInput->keyDown(VD_LCONTROL))
+		return FALSE;
+	return TRUE;
 }
 
-void doGameLogic()
+BOOL doGameLogic()
 {
 	// do nothing
+	return TRUE;
 }
+
 void onDrawFrame(Surface* s)
 {
 	buf = s;
