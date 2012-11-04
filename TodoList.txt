@@ -1,0 +1,14 @@
+1. [X] move game name defination to logic part
+2. [X] add mouse input method
+3. [X] add zoom in surport for Mandelbrot project 
+       - NEED polish with buffered mouse data
+4. [X] add mouse buffer_mode tweakable surport 
+       - seems no differce, but also has waiting button down event.....
+5. [] add mouse event detection surport
+6. [] implement soft text drawing in core
+7. [X] add WM_ACTIVATE handling
+8. [X] add WM_SIZE handling - NEED MORE WORKING
+9. [] refactor windows platform
+10. [X] add console debug window  
+        - CAN'T WORK
+11. [] polish WM_SIZE handling

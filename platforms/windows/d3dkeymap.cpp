@@ -72,6 +72,14 @@ int keyMap[256] =
 	DIK_UNDERLINE,
 	DIK_EQUALS,
 	DIK_BACKSLASH,
+	DIK_0,
+	DIK_1,
+	DIK_2,
+	DIK_3,
+	DIK_4,
+	DIK_5,
+	DIK_6,
+	DIK_7,
+	DIK_8,
+	DIK_9,
 };
-
-

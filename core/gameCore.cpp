@@ -31,8 +31,9 @@ void gameCore_main(virtualDevice* VD)
 	{
 		if(!VD->platformMessageHandling())
 			break;
-		gameCore_drawFrame(VD);
-		VD->platformKeyHandling();
+		if(!VD->paused)
+			gameCore_drawFrame(VD);
+		VD->platformInputHandling();
 	}
 	gameCore_shutdown();
 }

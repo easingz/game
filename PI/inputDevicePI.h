@@ -73,11 +73,21 @@ enum _vd_key
 	VD_UNDERLINE,
 	VD_EQUAL,
 	VD_BACKSLASH,
+	VD_0,
+	VD_1,
+	VD_2,
+	VD_3,
+	VD_4,
+	VD_5,
+	VD_6,
+	VD_7,
+	VD_8,
+	VD_9,
 	//TODO: numpad
 };
 typedef enum _vd_key VD_KEY;
 
-enum _vd_mouse
+enum _vd_mouse_button
 {
 	VD_MOUSE0,
 	VD_MOUSE1,
@@ -88,13 +98,14 @@ enum _vd_mouse
 	VD_MOUSE6,
 	VD_MOUSE7,
 };
-typedef enum _vd_mouse VD_MOUSE;
+typedef enum _vd_mouse_button VD_MOUSE_BUTTON;
 
 struct _input_device
 {
 	void (*getInputState) (void);
 	int32_t (*keyDown) (VD_KEY);
-	int32_t (*buttonDown) (VD_MOUSE);
+	int32_t (*buttonDown) (VD_MOUSE_BUTTON);
+	// relative coordinate
 	int32_t (*mouse_X) (void);
 	int32_t (*mouse_Y) (void);
 };

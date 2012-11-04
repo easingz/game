@@ -12,6 +12,10 @@
 #define _STR(x) x
 #endif
 
+#ifndef TWEAK_MOUSE_BUFFER_MODE
+#define TWEAK_MOUSE_BUFFER_MODE 0 //0 for immediate mode, 1 for buffered mode
+#endif
+
 extern tchar* gameName;
 struct _surface
 {
@@ -24,16 +28,18 @@ struct _surface
 	int32_t (*beginFrame) (void);
 	void (*endFrame) (void);
 	void (*present)(void);
+
 };
 typedef struct _surface Surface, *pSurface;
 struct _virtualDevice
 {
 	Surface* surface;
 	inputDevice* input;
+	int8_t paused;
 	// ms
 	int64_t (*timer_tik)(void);
 	int32_t (*platformMessageHandling)(void);
-	void (*platformKeyHandling) (void);
+	void (*platformInputHandling) (void);
 };
 typedef struct _virtualDevice virtualDevice, *pVirtualDevice;
 
