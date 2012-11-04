@@ -93,10 +93,11 @@ void drawMandelbrot()
 
 void drawCursor(int x, int y)
 {
-	if(0 <= x && x<= buf->w - 1 && 0<= y && y <= buf->h - 1)
+	//square of 5 pixels wide
+	if(0 <= x && x< buf->w - 5 && 0<= y && y < buf->h - 5)
 	{
-		for (int i = x; i < x + 10; i++)
-			for (int j = y; j < y + 10; j++)
+		for (int i = x; i < x + 5; i++)
+			for (int j = y; j < y + 5; j++)
 				setColor(buf, i, j, CURSOR_THEME);
 	}
 }
@@ -104,8 +105,10 @@ void drawCursor(int x, int y)
 BOOL handleInput(inputDevice* VDInput)
 {
 	VDInput->getInputState();
-	mouse_x += VDInput->mouse_X();
-	mouse_y += VDInput->mouse_Y();
+	int xoff = VDInput->mouse_X();
+	int yoff = VDInput->mouse_Y();
+	mouse_x += xoff*2;
+	mouse_y += yoff*2;
 	if(VDInput->buttonDown(VD_MOUSE0))
 	{
 		//zoom in

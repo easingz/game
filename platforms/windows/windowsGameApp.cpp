@@ -18,7 +18,7 @@
 
 #include <iostream>
 
-#define TWEAK_MOUSE_BUFFER_MODE 1
+#define TWEAK_MOUSE_BUFFER_MODE 0
 //gameCore PI included
 #include "../../PI/gameCorePI.h"
 
@@ -247,7 +247,7 @@ BOOL InitDIInput(void)
 		MessageBox(mainWindow, _T("Error create DirectInput8 mouse device"), _T("Error"), MB_OK);;
 	DIMouse->SetDataFormat(&c_dfDIMouse);
 	// need DISCL_EXCLUSIVE for fullscreen to inprove performance
-	DIMouse->SetCooperativeLevel(mainWindow, DISCL_NONEXCLUSIVE | DISCL_FOREGROUND);
+	DIMouse->SetCooperativeLevel(mainWindow, DISCL_EXCLUSIVE | DISCL_FOREGROUND);
 
 #if TWEAK_MOUSE_BUFFER_MODE
 	// buffered mode
@@ -446,6 +446,8 @@ void d3dEndScene()
 	rect.top = 0;
 	rect.bottom = WINDOW_HEIGHT;
 	d3dDevice->StretchRect(surface, NULL, backBuffer, &rect, D3DTEXF_NONE);
+	//clear surface
+	d3dDevice->ColorFill(surface, NULL, D3DCOLOR_XRGB(0, 0, 0));
 	d3dDevice->EndScene();
 }
 

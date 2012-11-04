@@ -48,7 +48,8 @@ void gameCore_drawFrame(virtualDevice* VD)
 	if(surface->beginFrame())
 	{
 		surface->lockSurface();
-
+		//clear surface
+		//clearSurface();
 		onDrawFrame(surface);
 
 		surface->unlockSurface();

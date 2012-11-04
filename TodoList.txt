@@ -12,3 +12,6 @@
 10. [X] add console debug window  
         - CAN'T WORK
 11. [] polish WM_SIZE handling
+12. [] clear trailing whitespace
+13. [] add rendering_dirty mode
+14. [] too slow fram rate for MandelBrot, improve it
