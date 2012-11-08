@@ -15,3 +15,14 @@
 12. [] clear trailing whitespace
 13. [] add rendering_dirty mode
 14. [] too slow fram rate for MandelBrot, improve it
+15. [] flip backbuffer and surface clean feels not right
+       - they are written in wrong place
+15. [] creating MouseMove project to invetigate framerate
+16. [] add invalidate mechanism
+       - corresponding to dirty mode. no invalidate rect, no refresh.
+17. [] cursor drawing should be seperate with game part, moved in gameCore.
+18. [] add gameCore property setting for game. like showCursor?(setting manager)
+19. [] refactor game core to framework and lib parts.
+20. [] provide several painter mode to game, FB, BB etc.
+21. [] provide own bitmap image format.
+22. [] write a bash script to manage this todo file.
