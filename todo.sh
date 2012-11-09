@@ -10,13 +10,14 @@ todofile="TodoList.txt"
 [ ! -f ${todofile} ] && touch ${todofile}
 tmpfile=".tmpfile"
 cat ${todofile} > ${tmpfile}
+program=$0
 
 usage()
 {
     echo $(basename $0) [options] option_arg...
     cat<<EOF
 Options:
--a --add-todo [todo]    add one todo to todolist
+-a --add-todo [todo]      add one todo to todolist
 -m --mark-done [index]    mark one todo as done
 -u --unmark-todo [index]  unmark one todo as undone
 -n --add-note [index]     add note to one todo
@@ -68,49 +69,77 @@ mark_as_done()
 
 unmark_todo()
 {
-	//todo
+	grep "^$1\. \[X\]" $tmpfile > /dev/null
+	grepret=$?
+	if [ $grepret -eq 0 ]
+	then
+		sed "s/^$1\. \[X\]/$1\. \[\]/1" ${todofile} > ${tmpfile}
+		grep "^$1\. \[\]" $tmpfile
+	else
+		grep "^$1\. \[\]" $tmpfile
+		grepret=$?
+		if [ $grepret -eq 0 ]
+		then
+			echo "Task $1 has not been done, no need of change"
+		else
+			echo "Task $1 does not exist."
+		fi
+	fi
 	tmp_flush
 }
 
 todo_main()
 {
-    while getopts :a:m:u:n:tdhi: opt
+    set -- `getopt -n$program -u -a --longoptions="add-todo: mark-done: unmark-todo: add-note: show-todo show-done show-detail: help" a:m:u:n:tdhi: $*` || usage
+    while [ $# -gt 0 ]
     do
-	case $opt in
-	    a ) add_todo $OPTARG
+	case $1 in
+	    -a | --add-todo )
+		add_todo $2;shift
 		;;
-	    m ) mark_as_done $OPTARG
+	    -m | --mark-done )
+		mark_as_done $2;shift
 		;;
-		u )
+	    -u | --unmark-todo ) 
+		unmark_todo $2;shift
 		;;
-        n )
+            -n | --add-note )
+		shift
 		;;
-	    t ) cat $todofile |grep "\[\]"
+	    -t | --show-todo )
+		cat $todofile |grep "\[\]"
+		shift;;
+	    -d | --show-done )
+		cat $todofile |grep "\[X\]"
+		shift;;
+	    -i | --show-detail )
+		shift
 		;;
-	    d ) cat $todofile |grep "\[X\]"
-		;;
-	    i )
-		;;
-	    h ) usage
-		;;
-        ? ) if [ `expr index "adntdi" $OPTARG` -gt 0 ];then
-				echo "Need one parameter: " -$OPTARG
-			else
-				echo "Wrong argument: " -$OPTARG
-			fi
+	    -h | --help ) 
+		usage
+		shift;;
+	    -- )shift;break;;
+	    -* )usage;;
+            ?  )if [ `expr index "adntdi" $2` -gt 0 ];then
+		echo "Need one parameter: " -$2
+		else
+		echo "Wrong argument: " -$2
+		fi
+		shift
 		;;
         esac
+	shift
     done
-    shift $(($OPTIND - 1))
-# normal processing of arguments...
+# more processing of remaining parameters?
 }
 
 if [ $# -eq 0 ];then
     usage
+else
+    todo_main $*
 fi
-todo_main $*
 # clean remaining tmpfile
-if [-f $tmpfile ];then
+if [ -f $tmpfile ];then
 	rm -f $tmpfile
 fi
 exit 0
