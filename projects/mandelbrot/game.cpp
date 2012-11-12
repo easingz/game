@@ -1,11 +1,8 @@
 #include "../../core/includes/gamelib.h"
 #define MAX_ITER 20
-// red cursor
-#define CURSOR_THEME ARGB(0xff, 255, 0, 0)
-static Surface* buf;
+
 static BOOL isDrawn = FALSE;
 
-static int mouse_x = 0, mouse_y = 0;
 tchar* gameName = _STR("Mandelbrot");
 struct _mRange
 {
@@ -56,15 +53,15 @@ void complexAdd(pComplex const a, pComplex const b, pComplex result)
 void drawMandelbrot()
 {
     int i,j,count;
-    float realDelta = (renderState->re_max - renderState->re_min) / buf->w;
-    float imagDelta = (renderState->img_max - renderState->img_min) / buf->h;
+    float realDelta = (renderState->re_max - renderState->re_min) / backbuffer->w;
+    float imagDelta = (renderState->img_max - renderState->img_min) / backbuffer->h;
 
     complex z;
     //complex z = {-0.75, 0.0};
     //z.length = complexLength(&z);
-    for (i = 0, z.real = renderState->re_min ; i < buf->w; i++,z.real+=realDelta)
+    for (i = 0, z.real = renderState->re_min ; i < backbuffer->w; i++,z.real+=realDelta)
     {
-        for (j = 0, z.imag = renderState->img_min; j < buf->h; j++,z.imag+=imagDelta)
+        for (j = 0, z.imag = renderState->img_min; j < backbuffer->h; j++,z.imag+=imagDelta)
         {
             complex _x = {0, 0, 0.0};
             pComplex x = &_x;
@@ -76,7 +73,7 @@ void drawMandelbrot()
             }
             if(x->length <= 2.0)
 			{
-				setColor(buf, i, j, ARGB(0xff,0,0,0));
+				setColor(backbuffer, i, j, ARGB(0xff,0,0,0));
 			}
             else
             {
@@ -84,39 +81,36 @@ void drawMandelbrot()
                 int red = depth % 255;
                 int green = depth % 510;
                 int blue = depth % 755;
-				setColor(buf, i, j, ARGB(0xff,red,green,blue));
+				setColor(backbuffer, i, j, ARGB(0xff,red,green,blue));
             }
         }
     }
 	isDrawn =TRUE;
 }
 
-void drawCursor(int x, int y)
+STATUS initGameSetting()
 {
-	//square of 5 pixels wide
-	if(0 <= x && x< buf->w - 5 && 0<= y && y < buf->h - 5)
-	{
-		for (int i = x; i < x + 5; i++)
-			for (int j = y; j < y + 5; j++)
-				setColor(buf, i, j, CURSOR_THEME);
-	}
+	pCursorProp cp = (pCursorProp)malloc(sizeof(cursorProp));
+	cp->shape = SQUARE;
+	//red cursor
+	cp->ThemeColor = 0xffff0000;
+	if(!settingManager_setBool("cursor", TRUE))
+		return ERROR;
+	if(!settingManager_setProperty("cursor", cp))
+		return ERROR;
+	return OK;
 }
 
 BOOL handleInput(inputDevice* VDInput)
 {
-	VDInput->getInputState();
-	int xoff = VDInput->mouse_X();
-	int yoff = VDInput->mouse_Y();
-	mouse_x += xoff*2;
-	mouse_y += yoff*2;
-	if(VDInput->buttonDown(VD_MOUSE0))
+	if(coreInput_mouseDown(VD_MOUSE0))
 	{
 		//zoom in
 
 		pmRange newRange = (pmRange)malloc(sizeof(mRange));
 		newRange->pre = renderState;
 		renderState = newRange;
-		if (mouse_x < buf->w / 2)
+		if (coreInput_getMouse_X() < backbuffer->w / 2)
 		{
 			renderState->re_max = (renderState->pre->re_max + renderState->pre->re_min) / 2.0f;
 			renderState->re_min = renderState->pre->re_min;
@@ -126,7 +120,7 @@ BOOL handleInput(inputDevice* VDInput)
 			renderState->re_min = (renderState->pre->re_max + renderState->pre->re_min) / 2.0f;
 			renderState->re_max = renderState->pre->re_max;
 		}
-		if (mouse_y < buf->h / 2)
+		if (coreInput_getMouse_Y() < backbuffer->h / 2)
 		{
 			renderState->img_max = (renderState->pre->img_max + renderState->pre->img_min) / 2.0f;
 			renderState->img_min = renderState->pre->img_min;
@@ -138,7 +132,7 @@ BOOL handleInput(inputDevice* VDInput)
 		}
 		isDrawn = false;
 	}
-	if(VDInput->buttonDown(VD_MOUSE1))
+	if(coreInput_mouseDown(VD_MOUSE1))
 	{
 		//zoom out
 		if(renderState->pre != NULL)
@@ -149,7 +143,7 @@ BOOL handleInput(inputDevice* VDInput)
 			isDrawn = false;
 		}
 	}
-	if(VDInput->keyDown(VD_Q) && VDInput->keyDown(VD_LCONTROL))
+	if(coreInput_keyDown(VD_Q) && coreInput_keyDown(VD_LCONTROL))
 		//quit
 		return FALSE;
 	return TRUE;
@@ -161,10 +155,9 @@ BOOL doGameLogic()
 	return TRUE;
 }
 
-void onDrawFrame(Surface* s)
+BOOL renderScene()
 {
-	buf = s;
-	drawCursor(mouse_x, mouse_y);
 	if(!isDrawn)
 		drawMandelbrot();
+	return TRUE;
 }

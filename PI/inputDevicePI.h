@@ -2,6 +2,8 @@
 #define _INPUT_DEVICE_PI_H_
 
 #include <stdint.h>
+// please be synced with following key defination
+#define CORE_KEYMAP_SIZE 79
 enum _vd_key
 {
 	VD_A,
